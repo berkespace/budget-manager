@@ -10,10 +10,35 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { currentUser } from "@clerk/nextjs/server";
-import { redirect } from "next/dist/server/api-utils";
 import Image from "next/image";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import React from "react";
+
+const images = [
+  {
+    src: "/zircon.png",
+    alt: "Zircon",
+    title: "Code 💤",
+    width: 230,
+    height: 200,
+  },
+  {
+    src: "/sahin.png",
+    alt: "Şahin",
+    title: "Şahin 🐱‍👤",
+    width: 270,
+    height: 250,
+  },
+  {
+    src: "/450-nk.png",
+    alt: "450NK",
+    title: "Muni 🤠",
+    width: 250,
+    height: 220,
+  },
+  { src: "/mt.png", alt: "MT", title: "MAHO G 💀", width: 250, height: 250 },
+];
 
 async function page() {
   const user = await currentUser();
@@ -54,32 +79,14 @@ async function page() {
         <Logo />
       </div>
       <div className="flex flex-row items-center justify-center gap-8">
-  {/* 1. Resim ve Yazı */}
-  <div className="flex flex-col items-center">
-    <Image src="/zircon.png" alt="450sr" width={230} height={200} />
-    <h1 className="text-3xl font-bold mt-4">Code 💤</h1>
-  </div>
-
-  {/* 2. Resim ve Yazı */}
-  <div className="flex flex-col items-center">
-    <Image src="/sahin.png" alt="450sr" width={270} height={250} />
-    <h1 className="text-3xl font-bold mt-4">Şahin 🐱‍👤</h1>
-  </div>
-
-  {/* 3. Resim ve Yazı */}
-  <div className="flex flex-col items-center">
-    <Image src="/450-nk.png" alt="450sr" width={250} height={220} />
-    <h1 className="text-3xl font-bold mt-4">Muni 🤠</h1>
-  </div>
-
-  {/* 4. Resim ve Yazı */}
-  <div className="flex flex-col items-center">
-    <Image src="/mt.png" alt="450sr" width={250} height={250} />
-    <h1 className="text-2xl font-bold mt-4">MAHO G 💀</h1>
-  </div>
-</div>
+        {images.map(({ src, alt, title, width, height }) => (
+          <div key={src} className="flex flex-col items-center">
+            <Image src={src} alt={alt} width={width} height={height} />
+            <h1 className="text-3xl font-bold mt-4">{title}</h1>
+          </div>
+        ))}
+      </div>
     </div>
-    
   );
 }
 
