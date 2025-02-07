@@ -1,7 +1,6 @@
 "use client";
 
-import * as React from "react";
-
+import React, { useEffect, useState, useCallback } from "react";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,61 +25,63 @@ import { UpdateUserCurrency } from "@/app/wizard/_actions/userSettings";
 import { toast } from "sonner";
 
 export function CurrencyComboBox() {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
+  const [selectedOption, setSelectedOption] = useState<Currency | null>(null);
   const isDesktop = useMediaQuery("(min-width: 768px)");
-  const [selectedOption, setSelectedOption] = React.useState<Currency | null>(
-    null
-  );
 
-  const userSettings = useQuery<UserSettings>({
+  const { data: userSettings, isFetching } = useQuery<UserSettings>({
     queryKey: ["userSettings"],
     queryFn: () => fetch("api/user-settings").then((res) => res.json()),
   });
 
-  React.useEffect(() => {
-    if (!userSettings.data) return;
+  useEffect(() => {
+    if (!userSettings) return;
     const userCurrency = Currencies.find(
-      (currency) => currency.value === userSettings.data.currency
+      (currency) => currency.value === userSettings.currency
     );
     if (userCurrency) setSelectedOption(userCurrency);
-  }, [userSettings.data]);
+  }, [userSettings]);
 
   const mutation = useMutation({
     mutationFn: UpdateUserCurrency,
     onSuccess: (data: UserSettings) => {
-      toast.success(`Para biriminiz başarıyla güncellenmiştir 🎉`, {
+      toast.success("Para biriminiz başarıyla güncellenmiştir 🎉", {
         id: "update-currency",
       });
       setSelectedOption(
         Currencies.find((c) => c.value === data.currency) || null
       );
     },
-    onError: (e) => {
-      toast.error("Birşeyler yanlış gitti.😥", {
-        id: "update-currency",
-      });
+    onError: () => {
+      toast.error("Birşeyler yanlış gitti.😥", { id: "update-currency" });
     },
   });
 
-  const selectOption = React.useCallback(
+  const selectOption = useCallback(
     (currency: Currency | null) => {
       if (!currency) {
         toast.error("Lütfen bir para birimi seçin.");
         return;
       }
-
       toast.loading("Para biriminiz güncelleniyor.🤑", {
         id: "update-currency",
       });
-
       mutation.mutate(currency.value);
     },
     [mutation]
   );
 
-  if (isDesktop) {
-    return (
-      <SkeletonWrapper isLoading={userSettings.isFetching}>
+  const buttonLabel = selectedOption
+    ? selectedOption.label
+    : "+ Para Birimi Seç";
+
+  const content = (
+    <OptionList setOpen={setOpen} setSelectedOption={selectOption} />
+  );
+
+  return (
+    <SkeletonWrapper isLoading={isFetching}>
+      {isDesktop ? (
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button
@@ -88,43 +89,29 @@ export function CurrencyComboBox() {
               className="w-full justify-start"
               disabled={mutation.isPending}
             >
-              {selectedOption ? (
-                <>{selectedOption.label}</>
-              ) : (
-                <>+ Para Birimi Seç</>
-              )}
+              {buttonLabel}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-[200px] p-0" align="start">
-            <OptionList setOpen={setOpen} setSelectedOption={selectOption} />
+            {content}
           </PopoverContent>
         </Popover>
-      </SkeletonWrapper>
-    );
-  }
-
-  return (
-    <SkeletonWrapper isLoading={userSettings.isFetching}>
-      <Drawer open={open} onOpenChange={setOpen}>
-        <DrawerTrigger asChild>
-          <Button
-            variant="outline"
-            className="w-full justify-start"
-            disabled={mutation.isPending}
-          >
-            {selectedOption ? (
-              <>{selectedOption.label}</>
-            ) : (
-              <>+ Para Birimi Seç</>
-            )}
-          </Button>
-        </DrawerTrigger>
-        <DrawerContent>
-          <div className="mt-4 border-t">
-            <OptionList setOpen={setOpen} setSelectedOption={selectOption} />
-          </div>
-        </DrawerContent>
-      </Drawer>
+      ) : (
+        <Drawer open={open} onOpenChange={setOpen}>
+          <DrawerTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              disabled={mutation.isPending}
+            >
+              {buttonLabel}
+            </Button>
+          </DrawerTrigger>
+          <DrawerContent>
+            <div className="mt-4 border-t">{content}</div>
+          </DrawerContent>
+        </Drawer>
+      )}
     </SkeletonWrapper>
   );
 }
@@ -134,7 +121,7 @@ function OptionList({
   setSelectedOption,
 }: {
   setOpen: (open: boolean) => void;
-  setSelectedOption: (status: Currency | null) => void;
+  setSelectedOption: (currency: Currency | null) => void;
 }) {
   return (
     <Command>
@@ -142,15 +129,14 @@ function OptionList({
       <CommandList>
         <CommandEmpty>Sonuç bulunamadı 😥.</CommandEmpty>
         <CommandGroup>
-          {Currencies.map((currency: Currency) => (
+          {Currencies.map((currency) => (
             <CommandItem
               key={currency.value}
               value={currency.value}
               onSelect={(value) => {
-                setSelectedOption(
-                  Currencies.find((priority) => priority.value === value) ||
-                    null
-                );
+                const selected =
+                  Currencies.find((c) => c.value === value) || null;
+                setSelectedOption(selected);
                 setOpen(false);
               }}
             >
