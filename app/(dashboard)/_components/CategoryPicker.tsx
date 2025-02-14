@@ -1,11 +1,18 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverTrigger } from "@/components/ui/popover";
+import { CommandInput } from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { TransactionType } from "@/lib/types";
 import { Category } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
+import { Command } from "cmdk";
 import React from "react";
+import CreateCategoryDialog from "./CreateCategoryDialog";
 interface Props {
   type: TransactionType;
 }
@@ -39,6 +46,16 @@ function CategoryPicker({ type }: Props) {
           )}
         </Button>
       </PopoverTrigger>
+      <PopoverContent className="width-[200px] p-0">
+        <Command
+          onSubmit={(e) => {
+            e.preventDefault();
+          }}
+        >
+          <CommandInput placeholder="Kategori arayınız..." />
+          <CreateCategoryDialog type={type} />
+        </Command>
+      </PopoverContent>
     </Popover>
   );
 }
