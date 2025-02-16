@@ -1,7 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { CommandInput } from "@/components/ui/command";
+import {
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import {
   Popover,
   PopoverContent,
@@ -13,6 +19,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Command } from "cmdk";
 import React from "react";
 import CreateCategoryDialog from "./CreateCategoryDialog";
+import { Check } from "lucide-react";
+import { cn } from "@/lib/utils";
 interface Props {
   type: TransactionType;
 }
@@ -54,6 +62,34 @@ function CategoryPicker({ type }: Props) {
         >
           <CommandInput placeholder="Kategori arayınız..." />
           <CreateCategoryDialog type={type} />
+          <CommandEmpty>
+            <p>Kategori Bulunamadı</p>
+            <p className="text-xs text-muted-foreground">
+              Yeni bir kategori oluşturun.
+            </p>
+          </CommandEmpty>
+          <CommandGroup>
+            <CommandList>
+              {categoriesQuery.data &&
+                categoriesQuery.data.map((category: Category) => (
+                  <CommandItem
+                    key={category}
+                    onSelect={() => {
+                      setValue(category.name);
+                      setOpen((prev) => !prev);
+                    }}
+                  >
+                    <CategoryRow category={category} />
+                    <Check
+                      className={cn(
+                        "mr-2 w-4 h-4 opacity-0",
+                        value === category.name && "opacity-100"
+                      )}
+                    />
+                  </CommandItem>
+                ))}
+            </CommandList>
+          </CommandGroup>
         </Command>
       </PopoverContent>
     </Popover>
