@@ -42,8 +42,9 @@ import { Category } from "@prisma/client";
 import { toast } from "sonner";
 interface Props {
   type: TransactionType;
+  succesCallback: (category: Category) => void;
 }
-function CreateCategoryDialog({ type }: Props) {
+function CreateCategoryDialog({ type, succesCallback }: Props) {
   const [open, setOpen] = useState(false);
   const form = useForm<CreateCategorySchemaType>({
     resolver: zodResolver(CreateCategorySchema),
@@ -64,6 +65,7 @@ function CreateCategoryDialog({ type }: Props) {
       toast.success(`Kategori: ${data.name} başarıyla oluşturulmuştur🎉`, {
         id: "create-category",
       });
+      succesCallback(data);
       await queryClient.invalidateQueries({
         queryKey: ["categories"],
       });
@@ -120,10 +122,10 @@ function CreateCategoryDialog({ type }: Props) {
                 <FormItem>
                   <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input defaultValue={""} {...field} />
+                    <Input placeholder="Kategori" {...field} />
                   </FormControl>
                   <FormDescription>
-                    İşlem açıklaması (isteğe bağlı)
+                    Kategorilerinizin uygulamada nasıl görüneceğini belirleyin.
                   </FormDescription>
                 </FormItem>
               )}

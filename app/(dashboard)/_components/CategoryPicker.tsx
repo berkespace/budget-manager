@@ -17,18 +17,23 @@ import { TransactionType } from "@/lib/types";
 import { Category } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
 import { Command } from "cmdk";
-import React from "react";
+import React, { useCallback, useEffect } from "react";
 import CreateCategoryDialog from "./CreateCategoryDialog";
-import { Check } from "lucide-react";
+import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 interface Props {
   type: TransactionType;
+  onChange: (value: string) => void;
 }
 
-function CategoryPicker({ type }: Props) {
+function CategoryPicker({ type, onChange }: Props) {
   const [open, setOpen] = React.useState(false);
   const [value, setValue] = React.useState("");
 
+  useEffect(() => {
+    if (!value) return;
+    onChange(value);
+  }, [onChange, value]);
   const categoriesQuery = useQuery({
     queryKey: ["categories", type],
     queryFn: () =>
@@ -37,6 +42,14 @@ function CategoryPicker({ type }: Props) {
 
   const selectedCategory = categoriesQuery.data?.find(
     (category: Category) => category.name === value
+  );
+
+  const succesCallback = useCallback(
+    (category: Category) => {
+      setValue(category.name);
+      setOpen((prev) => !prev);
+    },
+    [setValue, setOpen]
   );
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -52,6 +65,7 @@ function CategoryPicker({ type }: Props) {
           ) : (
             "Kategori seçiniz"
           )}
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="width-[200px] p-0">
@@ -61,7 +75,7 @@ function CategoryPicker({ type }: Props) {
           }}
         >
           <CommandInput placeholder="Kategori arayınız..." />
-          <CreateCategoryDialog type={type} />
+          <CreateCategoryDialog type={type} succesCallback={succesCallback} />
           <CommandEmpty>
             <p>Kategori Bulunamadı</p>
             <p className="text-xs text-muted-foreground">

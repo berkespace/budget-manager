@@ -14,7 +14,7 @@ import {
   CreateTransactionSchemaType,
 } from "@/schema/transaction";
 
-import { ReactNode } from "react";
+import { ReactNode, useCallback } from "react";
 
 interface Props {
   trigger: ReactNode;
@@ -42,6 +42,13 @@ function CreateTransactionDialog({ trigger, type }: Props) {
       date: new Date(),
     },
   });
+
+  const handleCategoryChange = useCallback(
+    (value: string) => {
+      form.setValue("category", value);
+    },
+    [form]
+  );
   return (
     <Dialog>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
@@ -90,7 +97,6 @@ function CreateTransactionDialog({ trigger, type }: Props) {
                 </FormItem>
               )}
             />
-
             <div className="flex items-center justify-between gap-2">
               <FormField
                 control={form.control}
@@ -99,7 +105,10 @@ function CreateTransactionDialog({ trigger, type }: Props) {
                   <FormItem>
                     <FormLabel className="px-4">Kategori </FormLabel>
                     <FormControl>
-                      <CategoryPicker type={type} />
+                      <CategoryPicker
+                        type={type}
+                        onChange={handleCategoryChange}
+                      />
                     </FormControl>
                     <FormDescription>
                       Bu işlem için bir kategori seçiniz
